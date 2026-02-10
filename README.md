@@ -116,5 +116,5 @@ print(f"Global Score: {result['global_score']}")
 
 ---
 
-**Status**: Active Development (v1.2.0)
-**License**: MIT
+**Status**: Alpha Development (v0.1.0)
+**License**: Proprietary (Private Source). All rights reserved. No part of this code may be used, distributed, or modified without explicit permission from the creators.

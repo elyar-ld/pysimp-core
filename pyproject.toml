@@ -4,15 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pysimp-core"
-version = "1.2.0"
+version = "0.1.0"
 description = "Core library for Surgical Iatromathic Model Procedure (SIM-P) analysis."
 readme = "README.md"
-authors = [{ name = "Tu Nombre/Datagon", email = "contacto@datagon.tech" }]
+authors = [
+    { name = "Julio Alberto Pérez Sosa", email = "japsosa@gmail.com" },
+    { name = "Elyar Alberto López Dávila", email = "elyar.ld@gmail.com" }
+]
 requires-python = ">=3.10"
+license = { text = "Proprietary" }
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Private :: Do Not Upload",
 ]
 
 dependencies = [
