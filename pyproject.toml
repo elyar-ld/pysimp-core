@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pysimp-core"
+version = "1.2.0"
+description = "Core library for Surgical Iatromathic Model Procedure (SIM-P) analysis."
+readme = "README.md"
+authors = [{ name = "Tu Nombre/Datagon", email = "contacto@datagon.tech" }]
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+
+dependencies = [
+    # Capa A y D: Cálculos de saturación y Entropía de Tsallis
+    "numpy>=1.24.0",           # Para fórmulas de delta_tot y sumas-q [cite: 285, 437, 444]
+    
+    # Validación y Modelado: Frozen Templates y Auditoría
+    "pydantic>=2.5.0",         # Garantiza la inmutabilidad de la plantilla normativa [cite: 509, 513]
+    
+    # Capa B: Redes de Petri Coloreadas y Topología
+    "snakes>=0.9.18",          # Motor para la lógica de estados y tokens de seguridad [cite: 72, 353]
+    "networkx>=3.0",           # Análisis de alcance (reachability) y estados prohibidos [cite: 385, 525]
+    
+    # Ingesta de Datos y Logs (Anexo II)
+    "loguru>=0.7.0",           # Registro estructurado de eventos quirúrgicos [cite: 533, 568]
+    "orjson>=3.9.0",           # Serialización ultra rápida de plantillas JSON [cite: 534]
+    
+    # Tipado y Compatibilidad
+    "typing-extensions>=4.5.0", 
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black",
+    "mypy",
+    "graphviz",                # Para visualizar la Capa B (Redes de Petri) [cite: 353]
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

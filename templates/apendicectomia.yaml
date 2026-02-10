@@ -1,0 +1,111 @@
+
+procedure_type: "Laparoscopic Appendectomy"
+version: "1.0.0"
+
+# Global Parameters
+tsallis_q: 1.0
+complication_set_k: ["Infection", "Bleeding"]
+shapley_convention: "default"
+
+# SIM-PCP Bridge Coefficients (Layer E)
+# Alpha_k, Beta_k_Delta, Beta_k_S, Gamma_k_t, Xi_k_t
+calibration_coefficients:
+  Infection:
+    alpha_k: 0.05
+    beta_k_delta: 1.5
+    beta_k_s: 2.0
+    gamma_k_t: {P1: 0.1, P2: 0.5, P3: 0.2} # Corresponds to step criticality
+    xi_k_t: {P1: 0.01, P2: 0.02, P3: 0.01} # Error probability baseline
+  Bleeding:
+    alpha_k: 0.1
+    beta_k_delta: 2.0
+    beta_k_s: 1.0
+    gamma_k_t: {P1: 0.2, P2: 0.8, P3: 0.1}
+    xi_k_t: {P1: 0.05, P2: 0.1, P3: 0.05}
+
+# Layer C: Dynamics (Provenance)
+dynamics_definition:
+  state_components: ["fatigue", "instrument_wear"]
+  decay_functions:
+    fatigue: "exponential"
+    instrument_wear: "linear"
+
+# Layer B: Forbidden States (Markings)
+forbidden_states:
+  - ["p_start", "p_end"] # Cannot be at start and end simultaneously
+
+# Steps (Phases)
+steps:
+  P1:
+    name: "Abdominal Access"
+    description: "Initial access and port placement."
+    weight_wt: 1.0
+    surgits:
+      S1:
+        name: "Incision (Umbilical)"
+        base_probability: 0.95
+        complexity_weight: 0.1
+      S2:
+        name: "Trocar Insertion"
+        base_probability: 0.90
+        complexity_weight: 0.2
+  
+  P2:
+    name: "Appendix Dissection"
+    description: "Isolation of the appendix."
+    weight_wt: 1.2
+    surgits:
+      S3:
+        name: "Appendix Identification"
+        base_probability: 0.85
+        complexity_weight: 0.3
+      S4:
+        name: "Mesoappendix Dissection"
+        base_probability: 0.80
+        complexity_weight: 0.4
+
+  P3:
+    name: "Appendix Removal"
+    weight_wt: 1.0
+    surgits:
+      S5:
+        name: "Appendix Ligation"
+        base_probability: 0.90
+        complexity_weight: 0.3
+      S6:
+        name: "Appendix Removal"
+        base_probability: 0.95
+        complexity_weight: 0.2
+
+# Structure (Petri Net Definition)
+structure_definition:
+  places:
+    - p_start
+    - p_incised
+    - p_trocar_placed
+    - p_identified
+    - p_dissected
+    - p_ligated
+    - p_end
+  
+  transitions:
+    - id: S1
+      input: p_start
+      output: p_incised
+    - id: S2
+      input: p_incised
+      output: p_trocar_placed
+    - id: S3
+      input: p_trocar_placed
+      output: p_identified
+    - id: S4
+      input: p_identified
+      output: p_dissected
+    - id: S5
+      input: p_dissected
+      output: p_ligated
+    - id: S6
+      input: p_ligated
+      output: p_end
+
+  initial_marking: p_start

@@ -1,0 +1,65 @@
+{
+    "name": "Apendicectomia",
+    "version": "1.0",
+    "steps": [
+        {
+            "id": "step_1",
+            "name": "Preparation",
+            "surgits": [
+                {
+                    "id": "surgit_1_1",
+                    "name": "Cleansing",
+                    "description": "Clean the surgical site"
+                },
+                {
+                    "id": "surgit_1_2",
+                    "name": "Draping",
+                    "description": "Apply surgical drapes"
+                }
+            ]
+        },
+        {
+            "id": "step_2",
+            "name": "Access",
+            "surgits": [
+                {
+                    "id": "surgit_2_1",
+                    "name": "Incision",
+                    "description": "Make the McBurney incision"
+                }
+            ]
+        },
+        {
+            "id": "step_3",
+            "name": "Excision",
+            "surgits": [
+                {
+                    "id": "surgit_3_1",
+                    "name": "Locate Appendix",
+                    "description": "Deliver the cecum and identify appendix"
+                },
+                {
+                    "id": "surgit_3_2",
+                    "name": "Ligate Base",
+                    "description": "Ligate the base of the appendix"
+                },
+                {
+                    "id": "surgit_3_3",
+                    "name": "Excise Appendix",
+                    "description": "Remove the appendix"
+                }
+            ]
+        },
+        {
+            "id": "step_4",
+            "name": "closure",
+            "surgits": [
+                {
+                    "id": "surgit_4_1",
+                    "name": "Suture",
+                    "description": "Close the layers"
+                }
+            ]
+        }
+    ]
+}
