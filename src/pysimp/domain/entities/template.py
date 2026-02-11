@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Dict, Any, Optional
 from .surgit import Surgit
 from .step import Step
@@ -11,7 +11,10 @@ class NormativeTemplate(BaseModel):
     - The set of valid Surgits (transitions).
     - The structural rules (Petri Net definition).
     - Global parameters (q, alpha, beta).
+    
+    A.I.2 Model Freezing Rule: Immutability enforced via frozen=True.
     """
+    model_config = ConfigDict(frozen=True)
     procedure_type: str = Field(..., description="Name of the procedure (e.g., 'Laparoscopic Appendectomy')")
     version: str = Field(..., description="Version of the template (e.g., '1.0.0')")
     

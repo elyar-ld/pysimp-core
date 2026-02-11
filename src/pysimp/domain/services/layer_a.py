@@ -7,23 +7,31 @@ class LayerA:
     Implements Equation (26) for saturation (Delta_tot) or simplified accumulation.
     """
     @staticmethod
-    def calculate_saturation(context_events: list, base_saturation: float = 0.0) -> float:
+    def calculate_patient_amplification(intrinsic_deviation: float, n_t: float) -> float:
         """
-        Calculates the probability saturation (Delta_tot).
-        Uses Surgit.base_probability and complexity_weight.
-        Equation (26): Delta_tot ~ Sum(weights * events) / Total_Capacity
+        Calculates deviation amplification due to patient-related noise.
+        Equation (3): delta_pat = 1 - (1 - delta_intr)^n_t
         """
-        saturation = base_saturation
+        if n_t < 1.0:
+            raise ValueError("Patient noise factor n_t must be >= 1.0")
+        return 1.0 - math.pow(1.0 - intrinsic_deviation, n_t)
+
+    @staticmethod
+    def calculate_total_deviation(intrinsic_deviation: float, n_t: float, e_t: float) -> float:
+        """
+        Calculates total deviation aggregating all noise sources before mitigation.
+        Equation (5): delta_tot = 1 - (1 - delta_intr)^(n_t * e_t)
+        """
+        if n_t < 1.0 or e_t < 1.0:
+            raise ValueError("Noise factors n_t and e_t must be >= 1.0")
         
-        # In a real implementation, we would sum specific contributions based on the event's surgit properties.
-        # Here we assume context_events are enriched with surgit metadata or we look them up.
-        
-        for event in context_events:
-            # Assuming event has access to its definition or we pass it
-            # For now, simplistic accumulation:
-            # P_event = event.base_probability (if available)
-            weight = getattr(event, 'complexity_weight', 0.1) 
-            if weight is None: weight = 0.1
-            saturation += weight
-            
-        return min(saturation, 1.0)
+        exponent = n_t * e_t
+        return 1.0 - math.pow(1.0 - intrinsic_deviation, exponent)
+
+    @staticmethod
+    def apply_mitigation(total_deviation: float, mitigation_factor: float) -> float:
+        """
+        Applies security mitigation to the total deviation.
+        Layer A' - Equation (6): delta_final = sigma * delta_tot
+        """
+        return mitigation_factor * total_deviation

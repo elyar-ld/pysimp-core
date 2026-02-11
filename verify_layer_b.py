@@ -1,70 +1,73 @@
 
 import sys
-import unittest
+import os
 from datetime import datetime
-# sys.path.append("src")
+import pytest
+
+# Add src to path
+sys.path.append(os.path.join(os.getcwd(), 'src'))
 
 from pysimp.domain.entities.surgit import Surgit
-from pysimp.domain.entities.trace import SurgicalTrace, SurgitEvent
+from pysimp.domain.entities.step import Step
 from pysimp.domain.entities.template import NormativeTemplate
-from pysimp.application.use_cases.run_simulation import RunSimulation
-from pysimp.infrastructure.persistence.in_memory_repository import InMemoryTraceRepository
+from pysimp.domain.entities.trace import SurgicalTrace, SurgitEvent
 from pysimp.infrastructure.adapters.snakes_adapter import SnakesLayerBAdapter
 
-class TestLayerB(unittest.TestCase):
-    def setUp(self):
-        # Define a simple linear template: T1 -> T2
-        self.surgits = {
-            "T1": Surgit(id="T1", name="Incision", base_probability=0.9, complexity_weight=0.2),
-            "T2": Surgit(id="T2", name="Suture", base_probability=0.8, complexity_weight=0.3)
-        }
-        self.structure = {
-            'places': ['p_start', 'p_mid', 'p_end'],
-            'transitions': [
-                {'id': 'T1', 'input': 'p_start', 'output': 'p_mid'},
-                {'id': 'T2', 'input': 'p_mid', 'output': 'p_end'}
-            ],
-            'initial_marking': 'p_start'
-        }
-        self.template = NormativeTemplate(
-            procedure_type="TestProc", 
-            version="1.0",
-            surgits=self.surgits,
-            structure_definition=self.structure
-        )
-        
-        self.repo = InMemoryTraceRepository()
-        self.layer_b = SnakesLayerBAdapter()
-        self.simulation = RunSimulation(self.repo, self.layer_b)
 
-    def test_valid_sequence(self):
-        """Test T1 -> T2 (Valid)"""
-        events = [
-            SurgitEvent(surgit_id="T1", timestamp_start=datetime.now(), timestamp_end=datetime.now()),
-            SurgitEvent(surgit_id="T2", timestamp_start=datetime.now(), timestamp_end=datetime.now())
-        ]
-        trace = SurgicalTrace(procedure_id="VALID-01", patient_id="P1", events=events)
-        self.repo.save_trace(trace)
-        
-        result = self.simulation.execute("VALID-01", self.template)
-        
-        self.assertTrue(result['validation']['valid'])
-        # Saturation should be 0.2 + 0.3 = 0.5 (using weights)
-        self.assertAlmostEqual(result['saturation'], 0.5)
+def test_layer_b_structure():
+    # 1. Define a Simple Sequential Petri Net
+    # p_start -> [S1] -> p_mid -> [S2] -> p_end
+    structure_def = {
+        'places': ['p_start', 'p_mid', 'p_end'],
+        'transitions': [
+            {'id': 'S1', 'input': 'p_start', 'output': 'p_mid'},
+            {'id': 'S2', 'input': 'p_mid', 'output': 'p_end'}
+        ],
+        'initial_marking': ['p_start']
+    }
+    
+    # 2. Define Template with Mandatory S1 and S2
+    s1 = Surgit(id="S1", name="Step 1", is_mandatory=True)
+    s2 = Surgit(id="S2", name="Step 2", is_mandatory=True)
+    step = Step(id="Step1", name="Step 1", surgits={"S1": s1, "S2": s2})
+    
+    template = NormativeTemplate(
+        procedure_type="PN Test", version="1.0",
+        steps={"Step1": step},
+        structure_definition=structure_def,
+        forbidden_states=[]
+    )
+    
+    adapter = SnakesLayerBAdapter()
+    
+    # CASE 1: Valid Sequence (S1 -> S2)
+    trace_valid = [
+        SurgitEvent(surgit_id="S1", timestamp_start=datetime.now(), timestamp_end=datetime.now()),
+        SurgitEvent(surgit_id="S2", timestamp_start=datetime.now(), timestamp_end=datetime.now())
+    ]
+    print("Testing Valid Trace...")
+    assert adapter.validate_structure(trace_valid, template) == True
+    print("Passed Valid Trace.")
+    
+    # CASE 2: Invalid Sequence (S2 -> S1) - S2 not enabled at start
+    trace_invalid_seq = [
+        SurgitEvent(surgit_id="S2", timestamp_start=datetime.now(), timestamp_end=datetime.now()),
+        SurgitEvent(surgit_id="S1", timestamp_start=datetime.now(), timestamp_end=datetime.now())
+    ]
+    print("Testing Invalid Sequence...")
+    assert adapter.validate_structure(trace_invalid_seq, template) == False
+    print("Passed Invalid Sequence Check.")
+    
+    # CASE 3: Missed Mandatory Step (Only S1)
+    trace_incomplete = [
+        SurgitEvent(surgit_id="S1", timestamp_start=datetime.now(), timestamp_end=datetime.now())
+    ]
+    print("Testing Incomplete/Mandatory Check...")
+    # Should fail because S2 is mandatory but not in trace
+    assert adapter.validate_structure(trace_incomplete, template) == False
+    print("Passed Mandatory Check.")
 
-    def test_invalid_sequence(self):
-        """Test T2 -> T1 (Invalid order)"""
-        events = [
-            SurgitEvent(surgit_id="T2", timestamp_start=datetime.now(), timestamp_end=datetime.now()), # Cannot fire T2 first (needs token in p_mid)
-            SurgitEvent(surgit_id="T1", timestamp_start=datetime.now(), timestamp_end=datetime.now())
-        ]
-        trace = SurgicalTrace(procedure_id="INVALID-01", patient_id="P2", events=events)
-        self.repo.save_trace(trace)
-        
-        result = self.simulation.execute("INVALID-01", self.template)
-        
-        self.assertFalse(result['validation']['valid'])
-        print(f"\nInvalid Trace Msg: {result['validation']['message']}")
+    print("Layer B Verification Completel!")
 
-if __name__ == '__main__':
-    unittest.main()
+if __name__ == "__main__":
+    test_layer_b_structure()

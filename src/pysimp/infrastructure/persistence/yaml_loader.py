@@ -28,11 +28,19 @@ class YamlTemplateLoader:
             for step_id, step_data in data['steps'].items():
                 surgits_in_step = {}
                 for s_id, s_data in step_data.get('surgits', {}).items():
+                    delta_intr = s_data.get('intrinsic_deviation')
+                    if delta_intr is None:
+                        # Backward compatibility: base_probability = pi = 1 - delta
+                        base_prob = s_data.get('base_probability', 1.0)
+                        delta_intr = 1.0 - base_prob
+                    
                     surgits_in_step[s_id] = Surgit(
                         id=s_id,
                         name=s_data['name'],
                         description=s_data.get('description'),
-                        base_probability=s_data.get('base_probability', 1.0),
+                        intrinsic_deviation=delta_intr,
+                        mitigation_factor=s_data.get('mitigation_factor', 1.0),
+                        security_scope=s_data.get('security_scope', 'imm'),
                         complexity_weight=s_data.get('complexity_weight', 0.1),
                         is_mandatory=s_data.get('is_mandatory', True),
                         is_safety=s_data.get('is_safety', False)
