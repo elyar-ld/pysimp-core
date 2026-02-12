@@ -38,7 +38,7 @@ def run():
     current_time = datetime.now()
     
     # Executing steps S1 to S3
-    for step_id in ["S1", "S2", "S3"]:
+    for step_id in ["S1", "S2", "S3", "S4", "S5", "S6"]:
         events.append(SurgitEvent(
             surgit_id=step_id, 
             timestamp_start=current_time, 
@@ -59,13 +59,13 @@ def run():
         result = simulation.execute(trace_id=trace_id, template=template, q=template.tsallis_q)
         
         logger.info("-" * 30)
-        logger.info(f"Trace Validation: {result['validation']['valid']}")
-        if not result['validation']['valid']:
-            logger.info(f"Validation Msg: {result['validation']['message']}")
+        logger.info(f"Trace Validation: {result.validation_status}")
+        if result.validation_status != "VALID":
+            logger.info(f"Validation Msg: {result.validation_message}")
             
-        logger.info(f"Saturation Delta: {result['saturation']:.4f}")
-        logger.info(f"Tsallis Entropy: {result['tsallis_entropy']:.4f}")
-        logger.info(f"Global Score:     {result['global_score']:.4f}")
+        logger.info(f"Saturation Delta: {result.GlobalMetrics['rho_SIM']:.4f}")
+        logger.info(f"Tsallis Entropy: {result.GlobalMetrics['S_q(SIM)']:.4f}")
+        logger.info(f"Global Score:     {result.GlobalMetrics['Score_SIM']:.4f}")
         logger.info("-" * 30)
         
     except Exception as e:
